@@ -53,4 +53,15 @@ void asciidump(void *buf, int len)
         printf("\n");
 }
 
+void asciiprint(void *buf, int len)
+{
+        int n;
+        unsigned char *p = buf;
+
+        for (n = 0; n < len; n++)
+        {
+                putc(p[n], stdout);
+        }
+}
+
 #endif /* _TLP_TEST_UTIL_H_ */
