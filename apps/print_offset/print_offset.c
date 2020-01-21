@@ -832,8 +832,6 @@ int main()
 	size_t size = sizeof(struct task_struct);
 	printf("task_struct size: %lu\n\n", size);
 
-	printf("int: %lu\n", sizeof(int));
-
 	size_t offset;
 	offset = offsetof(struct task_struct, state);
 	printf("state: %zu\n", offset);
