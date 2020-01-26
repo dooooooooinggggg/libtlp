@@ -3174,9 +3174,11 @@ configs = [
 def classification(l, s):
 
     if "#if" in l or "#endif" in l:
+        sys.stderr.write("No!! -> Macro, "+l)
         return 0
 
     if l[:3] != "CON" and l[:3] != "# C":
+        sys.stderr.write("No!! -> NOT CONFIG, "+l)
         return 0
 
     if s + "=y" in l:
@@ -3192,6 +3194,7 @@ def classification(l, s):
         print(l)
         return 1
     else:
+        sys.stderr.write("No!! -> No match, "+l)
         return 0
 
 
