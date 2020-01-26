@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stddef.h>
 #include <unistd.h>
+typedef _Bool	bool;
 typedef __signed__ char __s8;
 typedef unsigned char __u8;
 typedef __signed__ short __s16;
@@ -15,12 +16,6 @@ typedef signed int s32;
 typedef unsigned int u32;
 typedef signed long long s64;
 typedef unsigned long long u64;
-typedef __signed__ char __s8;
-typedef unsigned char __u8;
-typedef __signed__ short __s16;
-typedef unsigned short __u16;
-typedef __signed__ int __s32;
-typedef unsigned int __u32;
 __extension__ typedef __signed__ long long __s64;
 __extension__ typedef unsigned long long __u64;
 typedef struct {
@@ -29,6 +24,7 @@ typedef struct {
 typedef struct cpumask {
 	unsigned long	bits[(((8192) + ((sizeof(long) * 8)) - 1) / ((sizeof(long) * 8)))];
 }		cpumask_t;
+typedef s64	ktime_t;
 typedef int	__kernel_clockid_t;
 typedef __kernel_clockid_t clockid_t;
 typedef struct qspinlock {
@@ -47,13 +43,10 @@ typedef struct qspinlock {
 typedef struct raw_spinlock {
 	arch_spinlock_t	raw_lock;
 }		raw_spinlock_t;
-typedef struct spinlock {
-	union {
-		struct raw_spinlock rlock;
-	};
-}		spinlock_t;
-typedef s64	ktime_t;
 typedef int	__kernel_pid_t;
+typedef struct {
+	uid_t		val;
+}		kuid_t;
 typedef unsigned int __kernel_uid32_t;
 typedef unsigned int __kernel_gid32_t;
 typedef int	__kernel_timer_t;
@@ -63,7 +56,10 @@ typedef union sigval {
 }		sigval_t;
 typedef long	__kernel_long_t;
 typedef __kernel_long_t __kernel_clock_t;
+typedef struct seqcount {
+	unsigned	sequence;
 
+}		seqcount_t;
 typedef struct siginfo {
 	int		si_signo;
 	int		si_errno;
@@ -115,34 +111,28 @@ typedef struct siginfo {
 		}		_sigsys;
 	}		_sifields;
 }		siginfo_t;
+typedef struct spinlock {
+	union {
+		struct raw_spinlock rlock;
+	};
+}		spinlock_t;
 typedef struct {
-	unsigned long	bits[((((1 << 0)) + ((sizeof(long) * 8)) - 1) / ((sizeof(long) * 8)))];
+	unsigned long	bits[((((1 << 10)) + ((sizeof(long) * 8)) - 1) / ((sizeof(long) * 8)))];
 }		nodemask_t;
-typedef struct seqcount {
-	unsigned	sequence;
-}		seqcount_t;
-typedef _Bool	bool;
+typedef unsigned gfp_t;
 typedef struct {
 	long		counter;
 }		atomic64_t;
-
 typedef atomic64_t atomic_long_t;
-typedef unsigned gfp_t;
+
 typedef struct {
 	unsigned long	seg;
 }		mm_segment_t;
 
-typedef struct {
-	unsigned long	sig[(64 / 64)];
-}		sigset_t;
+
 /*
  * typedef end
  */
-enum timespec_type {
-	TT_NONE = 0,
-	TT_NATIVE = 1,
-	TT_COMPAT = 2,
-};
 enum pid_type {
 	PIDTYPE_PID,
 	PIDTYPE_PGID,
@@ -157,21 +147,95 @@ enum {
 	MM_SHMEMPAGES,
 	NR_MM_COUNTERS
 };
+enum timespec_type {
+	TT_NONE = 0,
+	TT_NATIVE = 1,
+	TT_COMPAT = 2,
+};
 enum perf_event_task_context {
 	perf_invalid_context = -1,
 	perf_hw_context = 0,
 	perf_sw_context,
 	perf_nr_task_contexts,
 };
-struct list_head {
-	struct list_head *next, *prev;
+struct fregs_state {
+	u32		cwd;
+	u32		swd;
+	u32		twd;
+	u32		fip;
+	u32		fcs;
+	u32		foo;
+	u32		fos;
+
+	u32		st_space   [20];
+
+	u32		status;
 };
-struct hlist_head {
-	struct hlist_node *first;
+struct fxregs_state {
+	u16		cwd;
+	u16		swd;
+	u16		twd;
+	u16		fop;
+	union {
+		struct {
+			u64		rip;
+			u64		rdp;
+		};
+		struct {
+			u32		fip;
+			u32		fcs;
+			u32		foo;
+			u32		fos;
+		};
+	};
+	u32		mxcsr;
+	u32		mxcsr_mask;
+
+	u32		st_space   [32];
+
+	u32		xmm_space  [64];
+	u32		padding    [12];
+	union {
+		u32		padding1   [12];
+		u32		sw_reserved[12];
+	};
+}		__attribute__((aligned(16)));
+struct swregs_state {
+	u32		cwd;
+	u32		swd;
+	u32		twd;
+	u32		fip;
+	u32		fcs;
+	u32		foo;
+	u32		fos;
+	u32		st_space   [20];
+	u8		ftop;
+	u8		changed;
+	u8		lookahead;
+	u8		no_update;
+	u8		rm;
+	u8		alimit;
+	struct math_emu_info *info;
+	u32		entry_eip;
 };
-struct hlist_node {
-	struct hlist_node *next, **pprev;
+struct xstate_header {
+	u64		xfeatures;
+	u64		xcomp_bv;
+	u64		reserved   [6];
+}		__attribute__((packed));
+struct xregs_state {
+	struct fxregs_state i387;
+	struct xstate_header header;
+	u8		extended_state_area[0];
+}		__attribute__((packed, aligned(64)));
+union fpregs_state {
+	struct fregs_state fsave;
+	struct fxregs_state fxsave;
+	struct swregs_state soft;
+	struct xregs_state xsave;
+	u8		__padding   [((1UL) << 12)];
 };
+
 struct thread_info {
 	unsigned long	flags;
 	u32		status;
@@ -181,6 +245,9 @@ struct llist_head {
 };
 struct llist_node {
 	struct llist_node *next;
+};
+struct list_head {
+	struct list_head *next, *prev;
 };
 struct load_weight {
 	unsigned long	weight;
@@ -257,6 +324,12 @@ struct sched_rt_entity {
 	unsigned short	on_list;
 	struct sched_rt_entity *back;
 }		__attribute__((designated_init));
+struct hlist_head {
+	struct hlist_node *first;
+};
+struct hlist_node {
+	struct hlist_node *next, **pprev;
+};
 struct timerqueue_node {
 	struct rb_node	node;
 	ktime_t		expires;
@@ -297,13 +370,13 @@ struct plist_node {
 	struct list_head prio_list;
 	struct list_head node_list;
 };
-struct task_rss_stat {
-	int		events;
-	int		count      [NR_MM_COUNTERS];
-};
 struct vmacache {
 	u64		seqnum;
 	struct vm_area_struct *vmas[(1U << 2)];
+};
+struct task_rss_stat {
+	int		events;
+	int		count      [NR_MM_COUNTERS];
 };
 struct restart_block {
 	long            (*fn) (struct restart_block *);
@@ -358,15 +431,15 @@ struct sigpending {
 	struct list_head list;
 	sigset_t	signal;
 };
+struct seccomp {
+	int		mode;
+	struct seccomp_filter *filter;
+};
 struct seccomp_data {
 	int		nr;
 	__u32		arch;
 	__u64		instruction_pointer;
 	__u64		args     [6];
-};
-struct seccomp {
-	int		mode;
-	struct seccomp_filter *filter;
 };
 struct wake_q_node {
 	struct wake_q_node *next;
@@ -379,8 +452,23 @@ struct rb_root_cached {
 	struct rb_node *rb_leftmost;
 };
 struct task_io_accounting {
+
+	u64		rchar;
+	u64		wchar;
+	u64		syscr;
+	u64		syscw;
+
+
+
+	u64		read_bytes;
+
+
+	u64		write_bytes;
+	u64		cancelled_write_bytes;
 };
 struct optimistic_spin_queue {
+
+
 	atomic_t	tail;
 };
 struct mutex {
@@ -388,193 +476,77 @@ struct mutex {
 	spinlock_t	wait_lock;
 	struct optimistic_spin_queue osq;
 	struct list_head wait_list;
+
+
+
 };
+struct callback_head {
+	struct callback_head *next;
+	void            (*func) (struct callback_head *head);
+}		__attribute__((aligned(sizeof(void *))));
 struct arch_tlbflush_unmap_batch {
-
-
 
 
 	struct cpumask	cpumask;
 };
 struct tlbflush_unmap_batch {
 	struct arch_tlbflush_unmap_batch arch;
+
 	bool		flush_required;
+
+
+
 	bool		writable;
 };
-struct callback_head {
-	struct callback_head *next;
-	void            (*func) (struct callback_head *head);
-}		__attribute__((aligned(sizeof(void *))));
-
 struct page_frag {
 	struct page    *page;
-
 	__u32		offset;
 	__u32		size;
 
 
-
-
 };
-
 struct desc_struct {
 	u16		limit0;
 	u16		base0;
 	u16		base1:	8  , type:4, s:1, dpl:2, p:1;
 	u16		limit1:	4 , avl:1, l:1, d:1, g:1, base2:8;
 }		__attribute__((packed));
-
-struct fregs_state {
-	u32		cwd;
-	u32		swd;
-	u32		twd;
-	u32		fip;
-	u32		fcs;
-	u32		foo;
-	u32		fos;
-
-
-	u32		st_space   [20];
-
-
-	u32		status;
-};
-
-struct fxregs_state {
-	u16		cwd;
-	u16		swd;
-	u16		twd;
-	u16		fop;
-	union {
-		struct {
-			u64		rip;
-			u64		rdp;
-		};
-		struct {
-			u32		fip;
-			u32		fcs;
-			u32		foo;
-			u32		fos;
-		};
-	};
-	u32		mxcsr;
-	u32		mxcsr_mask;
-
-
-	u32		st_space   [32];
-
-
-	u32		xmm_space  [64];
-
-	u32		padding    [12];
-
-	union {
-		u32		padding1   [12];
-		u32		sw_reserved[12];
-	};
-
-}		__attribute__((aligned(16)));
-
-struct swregs_state {
-	u32		cwd;
-	u32		swd;
-	u32		twd;
-	u32		fip;
-	u32		fcs;
-	u32		foo;
-	u32		fos;
-
-	u32		st_space   [20];
-	u8		ftop;
-	u8		changed;
-	u8		lookahead;
-	u8		no_update;
-	u8		rm;
-	u8		alimit;
-	struct math_emu_info *info;
-	u32		entry_eip;
-};
-struct xstate_header {
-	u64		xfeatures;
-	u64		xcomp_bv;
-	u64		reserved   [6];
-}		__attribute__((packed));
-struct xregs_state {
-	struct fxregs_state i387;
-	struct xstate_header header;
-	u8		extended_state_area[0];
-}		__attribute__((packed, aligned(64)));
-union fpregs_state {
-	struct fregs_state fsave;
-	struct fxregs_state fxsave;
-	struct swregs_state soft;
-	struct xregs_state xsave;
-	u8		__padding   [((1UL) << 12)];
-};
-
-
-
 struct fpu {
 	unsigned int	last_cpu;
 	unsigned char	initialized;
 	union fpregs_state state;
-
-
-
-
 };
 struct thread_struct {
-
 	struct desc_struct tls_array[3];
 
-
-
 	unsigned long	sp;
-
-
 
 	unsigned short	es;
 	unsigned short	ds;
 	unsigned short	fsindex;
 	unsigned short	gsindex;
 
-
-
 	unsigned long	fsbase;
 	unsigned long	gsbase;
 	struct perf_event *ptrace_bps[4];
-
 	unsigned long	debugreg6;
-
 	unsigned long	ptrace_dr7;
-
 	unsigned long	cr2;
 	unsigned long	trap_nr;
 	unsigned long	error_code;
 
 
-
-
-
 	unsigned long  *io_bitmap_ptr;
 	unsigned long	iopl;
-
 	unsigned	io_bitmap_max;
-
 	mm_segment_t	addr_limit;
-
 	unsigned int	sig_on_uaccess_err:1;
 	unsigned int	uaccess_err:1;
-
 
 	struct fpu	fpu;
 
 
-
-
 };
-
-
 struct task_struct {
 	struct thread_info thread_info;
 	volatile long	state;
@@ -599,6 +571,7 @@ struct task_struct {
 	struct sched_rt_entity rt;
 	struct task_group *sched_task_group;
 	struct sched_dl_entity dl;
+	struct hlist_head preempt_notifiers;
 	unsigned int	btrace_seq;
 	unsigned int	policy;
 	int		nr_cpus_allowed;
@@ -685,6 +658,8 @@ struct task_struct {
 	unsigned int	sas_ss_flags;
 	struct callback_head *task_works;
 	struct audit_context *audit_context;
+	kuid_t		loginuid;
+	unsigned int	sessionid;
 	struct seccomp	seccomp;
 	u32		parent_exec_id;
 	u32		self_exec_id;
@@ -703,6 +678,9 @@ struct task_struct {
 	unsigned long	ptrace_message;
 	siginfo_t      *last_siginfo;
 	struct task_io_accounting ioac;
+	u64		acct_rss_mem1;
+	u64		acct_vm_mem1;
+	u64		acct_timexpd;
 	nodemask_t	mems_allowed;
 	seqcount_t	mems_allowed_seq;
 	int		cpuset_mem_spread_rotor;
@@ -718,10 +696,29 @@ struct task_struct {
 	struct perf_event_context *perf_event_ctxp[perf_nr_task_contexts];
 	struct mutex	perf_event_mutex;
 	struct list_head perf_event_list;
+	struct mempolicy *mempolicy;
+	short		il_prev;
+	short		pref_node_fork;
+	int		numa_scan_seq;
+	unsigned int	numa_scan_period;
+	unsigned int	numa_scan_period_max;
+	int		numa_preferred_nid;
+	unsigned long	numa_migrate_retry;
+	u64		node_stamp;
+	u64		last_task_numa_placement;
+	u64		last_sum_exec_runtime;
+	struct callback_head numa_work;
+	struct list_head numa_entry;
+	struct numa_group *numa_group;
+	unsigned long  *numa_faults;
+	unsigned long	total_numa_faults;
+	unsigned long	numa_faults_locality[3];
+	unsigned long	numa_pages_migrated;
 	struct tlbflush_unmap_batch tlb_ubc;
 	struct callback_head rcu;
 	struct pipe_inode_info *splice_pipe;
 	struct page_frag task_frag;
+	struct task_delay_info *delays;
 	int		nr_dirtied;
 	int		nr_dirtied_pause;
 	unsigned long	dirty_paused_when;
@@ -747,6 +744,7 @@ struct task_struct {
 	struct vm_struct *stack_vm_area;
 	atomic_t	stack_refcount;
 	int		patch_state;
+	void           *security;
 	struct thread_struct thread;
 };
 int 
