@@ -77,7 +77,6 @@ int asciisearch(void *buf, int len, char arg_s[16])
         for (n = 0; n < len; n++)
         {
                 str[n] = p[n];
-                putc(p[n], stdout);
         }
 
         char *search_res = strstr(str, arg_s);

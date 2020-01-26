@@ -114,11 +114,14 @@ int main(int argc, char **argv)
             continue;
         }
 
-        if (ret > 0 && asciisearch(buf, size, "swapper/0"))
+        if (ret > 0)
         {
-            printf("Found!: 0x%lx(%lu)\n", addr, addr);
-            asciiprint(buf, size);
-            return 1;
+            if (asciisearch(buf, size, "swapper/0"))
+            {
+                printf("Found!: 0x%lx(%lu)\n", addr, addr);
+                asciiprint(buf, size);
+                return 1;
+            }
         }
     }
 
