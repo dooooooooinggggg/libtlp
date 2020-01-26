@@ -12,27 +12,12 @@
 void usage(void)
 {
     printf("usage\n"
-           "    -offset offset byte of comm in task_struct\n");
+           "    -a swapper/0's phys addr through xxd command(ex, 0x023f3ed0)\n"
+           "    -b offset byte of comm in task_struct\n");
 }
 
 int main(int argc, char **argv)
 {
-    int ch;
-    int offset;
-    while ((ch = getopt(argc, argv, "b:")) != -1)
-    {
-        switch (ch)
-        {
-        case 'b':
-            offset = atoi(optarg);
-            break;
-
-        default:
-            usage();
-            return -1;
-        }
-    }
-
     int ret, size, mrrs;
     struct nettlp nt;
     uintptr_t addr;
@@ -41,6 +26,39 @@ int main(int argc, char **argv)
 
     // size Bytes, addr from systemmap
     size = 2048;
+
+    int ch;
+    uintptr_t offset;
+    uintptr_t swapper_phys_addr;
+
+    while ((ch = getopt(argc, argv, "a:b:")) != -1)
+    {
+        switch (ch)
+        {
+        case 'a':
+            sscanf(optarg, "0x%lx", &swapper_phys_addr);
+            break;
+
+        case 'b':
+            sscanf(optarg, "%lu", &offset);
+            break;
+
+        default:
+            usage();
+            return -1;
+        }
+    }
+
+    if (offset == 0 || swapper_phys_addr == 0)
+    {
+        usage();
+        return -1;
+    }
+
+    printf("Offset: %lu\n", offset);
+    printf("swapper_phys_addr: %lu\n", swapper_phys_addr);
+
+    printf("Phys Addr: %lu\n", swapper_phys_addr - offset);
 
     /*
     * init
@@ -81,26 +99,30 @@ int main(int argc, char **argv)
     * / init
     */
 
-    printf("Offset: %d\n", offset);
+    uintptr_t start, end;
+    start = 0;
+    end = 10737418240;
 
-    // uintptr_t start, end;
-    // start = 0;
-    // end = 10737418240;
+    for (addr = start; addr < end; addr += size)
+    {
+        memset(buf, 0, sizeof(buf));
+        ret = dma_read(&nt, addr, buf, size);
 
-    // for (addr = start; addr < end; addr += size)
-    // {
-    //     memset(buf, 0, sizeof(buf));
-    //     ret = dma_read(&nt, addr, buf, size);
+        if (ret < 0)
+        {
+            fprintf(stderr, "Cannot read: 0x%lx(%lu)\n", addr, addr);
+            continue;
+        }
 
-    //     if (ret < 0)
-    //     {
-    //         fprintf(stderr, "Cannot read: 0x%lx(%lu)\n", addr, addr);
-    //         continue;
-    //     }
+        if (ret > 0 && asciisearch(buf, size, "swapper/0"))
+        {
+            printf("Found!: 0x%lx(%lu)\n", addr, addr);
+            asciiprint(buf, size);
+        }
+        return 1;
+    }
 
-    //     if (ret > 0)
-    //         asciiprint(buf, size);
-    // }
+    printf("Canndo found......\n");
 
     return 0;
 }
