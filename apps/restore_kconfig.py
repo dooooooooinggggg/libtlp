@@ -3208,7 +3208,6 @@ def search_config_str(file_name, s):
 
 def search(file_name):
     for s in configs:
-        # print("Searching "+s+" .....")
         if not search_config_str(file_name, s):
             print("# Cannot find " + s + " ...................")
 
