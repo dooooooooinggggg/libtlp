@@ -128,7 +128,9 @@ typedef atomic64_t atomic_long_t;
 typedef struct {
 	unsigned long	seg;
 }		mm_segment_t;
-
+typedef struct {
+	unsigned long sig[(64 / 64)];
+} sigset_t;
 
 /*
  * typedef end
@@ -747,7 +749,7 @@ struct task_struct {
 	void           *security;
 	struct thread_struct thread;
 };
-int 
+int
 main()
 {
 	size_t		size = sizeof(struct task_struct);
