@@ -118,8 +118,8 @@ int main(int argc, char **argv)
         {
             printf("Found!: 0x%lx(%lu)\n", addr, addr);
             asciiprint(buf, size);
+            return 1;
         }
-        return 1;
     }
 
     printf("Canndo found......\n");
