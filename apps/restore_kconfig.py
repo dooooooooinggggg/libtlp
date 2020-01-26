@@ -3188,7 +3188,7 @@ def classification(l, s):
     elif s + " is not set" in l:
         print("# " + s + " is not set")
         return 1
-    elif '=' in l:
+    elif s + '=' in l:
         print(l)
         return 1
     else:
