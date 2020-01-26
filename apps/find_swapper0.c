@@ -67,8 +67,8 @@ int main(int argc, char **argv)
     */
 
     uintptr_t start, end;
-    start = 37827712;
-    end = 37836812;
+    start = 0;
+    end = 10737418240;
 
     for (addr = start; addr < end; addr += size)
     {
