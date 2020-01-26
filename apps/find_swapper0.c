@@ -69,6 +69,7 @@ int main(int argc, char **argv)
     uintptr_t start, end;
     start = 0;
     end = 10737418240;
+    char swapper[16] = "swapper/0";
 
     for (addr = start; addr < end; addr += size)
     {
@@ -83,7 +84,7 @@ int main(int argc, char **argv)
 
         if (ret > 0)
         {
-            if (asciisearch(buf, size, "swapper/0"))
+            if (asciisearch(buf, size, swapper))
             {
                 printf("Found!: 0x%lx(%lu)\n", addr, addr);
                 asciiprint(buf, size);
