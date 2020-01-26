@@ -3174,11 +3174,9 @@ configs = [
 def classification(l, s):
 
     if "#if" in l or "#endif" in l:
-        sys.stderr.write("No!! -> Macro, "+l)
         return 0
 
     if l[:3] != "CON" and l[:3] != "# C":
-        sys.stderr.write("No!! -> NOT CONFIG, "+l)
         return 0
 
     if s + "=y" in l:
@@ -3194,7 +3192,6 @@ def classification(l, s):
         print(l)
         return 1
     else:
-        sys.stderr.write("No!! -> No match, "+l)
         return 0
 
 
@@ -3212,8 +3209,9 @@ def search_config_str(file_name, s):
 
 def search(file_name):
     for s in configs:
+        # print("Searching "+s+" .....")
         if not search_config_str(file_name, s):
-            print("# Cannot find " + s + " ...................")
+            sys.stderr.write("# Cannot find " + s + " ...................")
 
 
 def usage():
