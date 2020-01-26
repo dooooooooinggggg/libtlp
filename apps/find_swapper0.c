@@ -19,11 +19,11 @@ int main(int argc, char **argv)
 {
     int ch;
     int offset;
-    while ((ch = getopt(argc, argv, "offset:")) != -1)
+    while ((ch = getopt(argc, argv, "b:")) != -1)
     {
         switch (ch)
         {
-        case 'offset':
+        case 'b':
             offset = atoi(optarg);
             break;
 
