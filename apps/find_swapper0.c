@@ -27,39 +27,6 @@ int main(int argc, char **argv)
     // size Bytes, addr from systemmap
     size = 2048;
 
-    int ch;
-    uintptr_t offset;
-    uintptr_t swapper_phys_addr;
-
-    while ((ch = getopt(argc, argv, "a:b:")) != -1)
-    {
-        switch (ch)
-        {
-        case 'a':
-            sscanf(optarg, "0x%lx", &swapper_phys_addr);
-            break;
-
-        case 'b':
-            sscanf(optarg, "%lu", &offset);
-            break;
-
-        default:
-            usage();
-            return -1;
-        }
-    }
-
-    if (offset == 0 || swapper_phys_addr == 0)
-    {
-        usage();
-        return -1;
-    }
-
-    printf("Offset: %lu\n", offset);
-    printf("swapper_phys_addr: %lu\n", swapper_phys_addr);
-
-    printf("Phys Addr: %lu\n", swapper_phys_addr - offset);
-
     /*
     * init
     */

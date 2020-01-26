@@ -13,6 +13,7 @@ process-list
 phys_addrs_from_mem_map
 # debug_init_task
 find_swapper0
+calc_init_task_addr
 
 core
 
