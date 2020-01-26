@@ -3175,7 +3175,7 @@ def classification(l, s):
     if "#if" in l or "#endif" in l:
         return 0
 
-    if l[:3] != "CON" or l[:3] != "# C":
+    if l[:3] != "CON" and l[:3] != "# C":
         return 0
 
     if s + "=y" in l:
