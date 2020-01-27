@@ -217,43 +217,6 @@ int fill_task_struct(struct nettlp *nt, uintptr_t vhead, struct task_struct *t)
 	return 0;
 }
 
-int fill_init_task_struct(struct nettlp *nt, uintptr_t phead, struct task_struct *t)
-{
-	int ret;
-
-	t->phead = phead;
-	t->pstate = phead + OFFSET_HEAD_STATE;
-	t->ppid = phead + OFFSET_HEAD_PID;
-	t->pchildren = phead + OFFSET_HEAD_CHILDREN;
-	t->psibling = phead + OFFSET_HEAD_SIBLING;
-	t->pcomm = phead + OFFSET_HEAD_COMM;
-	t->preal_parent = phead + OFFSET_HEAD_REAL_PARENT;
-	ret = dma_read(nt, t->pchildren, &t->children, sizeof(t->children));
-	if (ret < sizeof(t->children))
-		return -1;
-
-	ret = dma_read(nt, t->psibling, &t->sibling, sizeof(t->sibling));
-	if (ret < sizeof(t->sibling))
-		return -1;
-
-	ret = dma_read(nt, t->preal_parent, &t->real_parent, sizeof(t->real_parent));
-	if (ret < sizeof(t->real_parent))
-		return -1;
-
-	t->children_next = (uintptr_t)t->children.next;
-	t->children_prev = (uintptr_t)t->children.prev;
-	t->sibling_next = (uintptr_t)t->sibling.next;
-	t->sibling_prev = (uintptr_t)t->sibling.prev;
-
-	check_task_value(t, head);
-	check_task_value(t, pid);
-	check_task_value(t, children);
-	check_task_value(t, sibling);
-	check_task_value(t, comm);
-
-	return 0;
-}
-
 void print_task_struct_column(void)
 {
 	printf("PhyAddr             PID STAT COMMAND\n");
@@ -453,9 +416,9 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	printf("init_phys_addr: 0x%lx\n", addr);
+	printf("init_vm_addr: 0x%lx\n", addr);
 
-	fill_init_task_struct(&nt, addr, &t);
+	fill_task_struct(&nt, addr, &t);
 
 	print_task_struct_column();
 	task(&nt, t.vhead, t.vhead);
