@@ -64,26 +64,6 @@ struct list_head
 
 /* task struct offset */
 
-/*
-* upa env
-*/
-// #define OFFSET_HEAD_STATE 16
-// #define OFFSET_HEAD_PID 2216
-// #define OFFSET_HEAD_CHILDREN 2240
-// #define OFFSET_HEAD_SIBLING 2256
-// #define OFFSET_HEAD_COMM 2632
-// #define OFFSET_HEAD_REAL_PARENT 2224
-
-/*
-* tatsu env
-*/
-#define OFFSET_HEAD_STATE 16
-#define OFFSET_HEAD_PID 2216
-#define OFFSET_HEAD_CHILDREN 2248
-#define OFFSET_HEAD_SIBLING 2264
-#define OFFSET_HEAD_COMM 2640
-#define OFFSET_HEAD_REAL_PARENT 2232
-
 #define TASK_COMM_LEN 16
 
 struct task_struct

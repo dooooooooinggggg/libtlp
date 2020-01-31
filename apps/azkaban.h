@@ -23,6 +23,26 @@ unsigned long gb_from_lx(unsigned long x)
 #include <linux/const.h>
 #endif
 
+/*
+* upa env
+*/
+// #define OFFSET_HEAD_STATE 16
+// #define OFFSET_HEAD_PID 2216
+// #define OFFSET_HEAD_CHILDREN 2240
+// #define OFFSET_HEAD_SIBLING 2256
+// #define OFFSET_HEAD_COMM 2632
+// #define OFFSET_HEAD_REAL_PARENT 2224
+
+/*
+* tatsu env
+*/
+#define OFFSET_HEAD_STATE 16
+#define OFFSET_HEAD_PID 2216
+#define OFFSET_HEAD_CHILDREN 2248
+#define OFFSET_HEAD_SIBLING 2264
+#define OFFSET_HEAD_COMM 2640
+#define OFFSET_HEAD_REAL_PARENT 2232
+
 /* from arch_x86/include/asm/page_64_types.h */
 #define KERNEL_IMAGE_SIZE (1024 * 1024 * 1024)
 
@@ -55,6 +75,16 @@ static inline unsigned long __phys_addr_nodebug(unsigned long x)
     return x;
 }
 
+0xffffffff82413480 - 0xffffffff80000000;
+37827712 = 18446744071599895680 - 18446744071562067968;
+
+x = 18446744071599895680;
+y = 37827712;
+
+x > y;
+
+x + phys_base + 18446744071562067968;
+
 /*
 * =========================================================================
 */
@@ -70,7 +100,8 @@ static inline unsigned long __phys_addr_nodebug(unsigned long x)
 // #endif
 // }
 /* from arch/x86/mm/physaddr.c */
-unsigned long __phys_addr(unsigned long x)
+unsigned long
+__phys_addr(unsigned long x)
 {
     // unsigned long before = x;
 
