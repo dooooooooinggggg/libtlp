@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 
         if (ret < 0)
         {
-            fprintf(stderr, "Cannot read: 0x%lx(%lu)\n", addr, addr);
+            // fprintf(stderr, "Cannot read: 0x%lx(%lu)\n", addr, addr);
             err_cnt++;
             continue;
         }
@@ -81,6 +81,8 @@ int main(int argc, char **argv)
         // if (ret > 0)
         //     asciiprint(buf, size);
     }
+
+    printf('%d\n', err_cnt);
 
     return 0;
 }
