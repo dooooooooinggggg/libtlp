@@ -61,8 +61,7 @@ int main(int argc, char **argv)
 
     int err_cnt = 0;
 
-    uintptr_t start,
-        end;
+    uintptr_t start, end;
     start = 0;
     end = 10737418240;
 
@@ -82,7 +81,7 @@ int main(int argc, char **argv)
         //     asciiprint(buf, size);
     }
 
-    printf('%d\n', err_cnt);
+    printf("%d\n", err_cnt);
 
     return 0;
 }
