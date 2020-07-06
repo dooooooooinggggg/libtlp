@@ -18,7 +18,7 @@ int main(int argc, char **argv)
     char buf[4096];
 
     // size Bytes, addr from systemmap
-    size = 2048;
+    size = (1UL << 12);
 
     /*
     * init
@@ -59,7 +59,10 @@ int main(int argc, char **argv)
     * / init
     */
 
-    uintptr_t start, end;
+    int err_cnt = 0;
+
+    uintptr_t start,
+        end;
     start = 0;
     end = 10737418240;
 
@@ -71,11 +74,12 @@ int main(int argc, char **argv)
         if (ret < 0)
         {
             fprintf(stderr, "Cannot read: 0x%lx(%lu)\n", addr, addr);
+            err_cnt++;
             continue;
         }
 
-        if (ret > 0)
-            asciiprint(buf, size);
+        // if (ret > 0)
+        //     asciiprint(buf, size);
     }
 
     return 0;
