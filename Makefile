@@ -1,5 +1,5 @@
 
-subdirs = lib test apps
+subdirs = lib test apps impl
 
 all:
 	@(for d in $(subdirs); do $(MAKE) -C $$d; done)
