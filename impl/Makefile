@@ -1,9 +1,17 @@
+CC = gcc
+INCLUDE := -I../include -I../../include
+LDFLAGS := -L../lib -L../../lib
+LDLIBS  := -ltlp -lpthread
+CFLAGS  := -g -Wall $(INCLUDE)
 
-subdirs = lib src
+PROGNAME = dma_read dma_write dump_mem mem_read
 
-all:
-	@(for d in $(subdirs); do $(MAKE) -C $$d; done)
+all: $(PROGNAME)
+
+.c.o: util.h
+	$(CC) $< -o $@
+
 clean:
-	@(for d in $(subdirs); do $(MAKE) -C $$d clean; done)
-
-remake: clean all
+	rm -rf *.o
+	rm -rf $(PROGNAME)
+	rm -rf *.dSYM

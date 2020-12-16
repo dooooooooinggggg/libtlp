@@ -1,7 +1,7 @@
 /*
  * libtlp.c
  */
-#include <stdio.h>	/* for debug */
+#include <stdio.h> /* for debug */
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
@@ -12,7 +12,6 @@
 
 #include <libtlp.h>
 #include <tlp.h>
-
 
 #ifdef __APPLE__
 
@@ -35,29 +34,27 @@
 
 #endif
 
-
-#define LIBTLP_CPL_TIMEOUT	500	/* msec */
-
+#define LIBTLP_CPL_TIMEOUT 500 /* msec */
 
 /* for debug use */
 static void hexdump(void *buf, int len)
 {
-        int n;
-        unsigned char *p = buf;
+	int n;
+	unsigned char *p = buf;
 
-        printf("Hex dump\n");
+	printf("Hex dump\n");
 
-        for (n = 0; n < len; n++) {
-                printf("%02x", p[n]);
+	for (n = 0; n < len; n++)
+	{
+		printf("%02x", p[n]);
 
-                if ((n + 1) % 2 == 0)
-                        printf(" ");
-                if ((n + 1) % 32 == 0)
-                        printf("\n");
-        }
-        printf("\n\n");
+		if ((n + 1) % 2 == 0)
+			printf(" ");
+		if ((n + 1) % 32 == 0)
+			printf("\n");
+	}
+	printf("\n\n");
 }
-
 
 /* utilities for parsing TLP headers */
 
@@ -107,7 +104,6 @@ int tlp_calculate_length(uintptr_t addr, size_t count)
 	return len;
 }
 
-
 uintptr_t tlp_mr_addr(struct tlp_mr_hdr *mh)
 {
 	int n;
@@ -115,20 +111,27 @@ uintptr_t tlp_mr_addr(struct tlp_mr_hdr *mh)
 	uint32_t *addr32;
 	uint64_t *addr64;
 
-	if (tlp_is_3dw(mh->tlp.fmt_type)) {
+	if (tlp_is_3dw(mh->tlp.fmt_type))
+	{
 		addr32 = (uint32_t *)(mh + 1);
 		addr = be32toh(*addr32);
-	} else {
+	}
+	else
+	{
 		addr64 = (uint64_t *)(mh + 1);
 		addr = be64toh(*addr64);
 	}
-	
+
 	/* move forard the address in accordance with the 1st DW BE */
-	if (mh->fstdw && mh->fstdw != 0xF) {
-		for (n = 0; n < 4; n++) {
-			if ((mh->fstdw & (0x1 << n)) == 0) {
+	if (mh->fstdw && mh->fstdw != 0xF)
+	{
+		for (n = 0; n < 4; n++)
+		{
+			if ((mh->fstdw & (0x1 << n)) == 0)
+			{
 				addr += 1;
-			} else
+			}
+			else
 				break;
 		}
 	}
@@ -143,19 +146,26 @@ int tlp_mr_data_length(struct tlp_mr_hdr *mh)
 
 	len = tlp_length(mh->tlp.falen) << 2;
 
-	if (mh->fstdw && mh->fstdw != 0xF) {
-		for (n = 0; n < 4; n++) {
-			if ((mh->fstdw & (0x1 << n)) == 0) {
+	if (mh->fstdw && mh->fstdw != 0xF)
+	{
+		for (n = 0; n < 4; n++)
+		{
+			if ((mh->fstdw & (0x1 << n)) == 0)
+			{
 				len--;
 			}
 		}
 	}
 
-	if (mh->lstdw && mh->lstdw != 0xF) {
-		for (n = 0; n < 4; n++) {
-			if ((mh->lstdw & (0x8 >> n)) == 0) {
+	if (mh->lstdw && mh->lstdw != 0xF)
+	{
+		for (n = 0; n < 4; n++)
+		{
+			if ((mh->lstdw & (0x8 >> n)) == 0)
+			{
 				len--;
-			} else
+			}
+			else
 				break;
 		}
 	}
@@ -168,14 +178,17 @@ void *tlp_mwr_data(struct tlp_mr_hdr *mh)
 	int n;
 	void *p;
 
-	p = tlp_is_3dw(mh->tlp.fmt_type) ?
-		((char *)(mh + 1)) + 4 : ((char *)(mh + 1)) + 8;
+	p = tlp_is_3dw(mh->tlp.fmt_type) ? ((char *)(mh + 1)) + 4 : ((char *)(mh + 1)) + 8;
 
-	if (mh->fstdw && mh->fstdw != 0xF) {
-		for (n = 0; n < 4; n++) {
-			if ((mh->fstdw & (0x1 << n)) == 0) {
+	if (mh->fstdw && mh->fstdw != 0xF)
+	{
+		for (n = 0; n < 4; n++)
+		{
+			if ((mh->fstdw & (0x1 << n)) == 0)
+			{
 				p++;
-			} else
+			}
+			else
 				break;
 		}
 	}
@@ -187,7 +200,7 @@ int tlp_cpld_data_length(struct tlp_cpl_hdr *ch)
 {
 	/* if this is last CplD, byte count is actual byte length */
 	if (tlp_length(ch->tlp.falen) ==
-	    ((ch->lowaddr & 0x3) + tlp_cpl_bcnt(ch->stcnt) + 3) >> 2)
+		((ch->lowaddr & 0x3) + tlp_cpl_bcnt(ch->stcnt) + 3) >> 2)
 		return tlp_cpl_bcnt(ch->stcnt);
 
 	/* if not, length - padding due to 4DW alignment */
@@ -198,23 +211,21 @@ void *tlp_cpld_data(struct tlp_cpl_hdr *ch)
 {
 	void *p;
 
-	p = tlp_is_3dw(ch->tlp.fmt_type) ?
-		((char *)(ch + 1)) + 4 : ((char *)(ch + 1)) + 8;
+	p = tlp_is_3dw(ch->tlp.fmt_type) ? ((char *)(ch + 1)) + 4 : ((char *)(ch + 1)) + 8;
 
 	/* shift for padding due to 4DW alignment */
 	p += (ch->lowaddr & 0x3);
 	return p;
 }
 
-
 /*
  * nettlp
  */
 
 static int nettlp_create_udp_socket(struct in_addr remote_addr,
-				    uint16_t remote_port,
-				    struct in_addr local_addr,
-				    uint16_t local_port)
+									uint16_t remote_port,
+									struct in_addr local_addr,
+									uint16_t local_port)
 {
 	int fd, ret;
 	struct sockaddr_in saddr;
@@ -231,7 +242,7 @@ static int nettlp_create_udp_socket(struct in_addr remote_addr,
 	ret = bind(fd, (struct sockaddr *)&saddr, sizeof(saddr));
 	if (ret < 0)
 		return ret;
-	
+
 	/* connect to remote address */
 	memset(&saddr, 0, sizeof(saddr));
 	saddr.sin_family = AF_INET;
@@ -251,7 +262,7 @@ int nettlp_init(struct nettlp *nt)
 	nt->port = NETTLP_PORT_BASE + (nt->tag & 0x0F);
 
 	fd = nettlp_create_udp_socket(nt->remote_addr, nt->port,
-				      nt->local_addr, nt->port);
+								  nt->local_addr, nt->port);
 	if (fd < 0)
 		return fd;
 
@@ -260,17 +271,16 @@ int nettlp_init(struct nettlp *nt)
 	return 0;
 }
 
-
 /*
  * Direct Memoy Access API
  */
 
 static ssize_t libtlp_read_cpld(struct nettlp *nt, void *buf,
-				size_t count)
+								size_t count)
 {
 	int ret = 0;
 	ssize_t received;
-	char rest[16];	/* additional buffer for gap of 4WD-aligned bytes */
+	char rest[16]; /* additional buffer for gap of 4WD-aligned bytes */
 	struct pollfd x[1];
 	struct iovec iov[4];
 	struct nettlp_hdr nh;
@@ -287,7 +297,8 @@ static ssize_t libtlp_read_cpld(struct nettlp *nt, void *buf,
 
 	received = 0;
 
-	while (1) {
+	while (1)
+	{
 
 		ret = poll(x, 1, LIBTLP_CPL_TIMEOUT);
 		if (ret < 0)
@@ -306,15 +317,18 @@ static ssize_t libtlp_read_cpld(struct nettlp *nt, void *buf,
 			goto err_out;
 
 		if (!(tlp_is_cpl(ch.tlp.fmt_type) &&
-		      tlp_is_w_data(ch.tlp.fmt_type))) {
+			  tlp_is_w_data(ch.tlp.fmt_type)))
+		{
 			/* invalid data type */
 			errno = EBADMSG;
 			ret = -1;
 			goto err_out;
 		}
 
-		if (tlp_cpl_status(ch.stcnt) != TLP_CPL_STATUS_SC) {
-			switch (tlp_cpl_status(ch.stcnt)) {
+		if (tlp_cpl_status(ch.stcnt) != TLP_CPL_STATUS_SC)
+		{
+			switch (tlp_cpl_status(ch.stcnt))
+			{
 			case TLP_CPL_STATUS_UR:
 				errno = EOPNOTSUPP;
 				ret = -1;
@@ -329,8 +343,9 @@ static ssize_t libtlp_read_cpld(struct nettlp *nt, void *buf,
 				goto err_out;
 			}
 		}
-		
-		if (ch.lowaddr & 0x3) {
+
+		if (ch.lowaddr & 0x3)
+		{
 			/* note: iov[2].iov_len must be identical with
 			 * byte count. current buffer layout is:
 			 *
@@ -353,24 +368,28 @@ static ssize_t libtlp_read_cpld(struct nettlp *nt, void *buf,
 			 */
 			int diff = iov[2].iov_len - (ch.lowaddr & 0x3);
 
-			if (diff > 0) {
+			if (diff > 0)
+			{
 				memmove(iov[2].iov_base,
-					iov[2].iov_base + (ch.lowaddr & 0x3),
-					diff);
+						iov[2].iov_base + (ch.lowaddr & 0x3),
+						diff);
 
 				memmove(iov[2].iov_base + diff,
-					iov[3].iov_base,
-					ch.lowaddr & 0x3);
-			} else {
+						iov[3].iov_base,
+						ch.lowaddr & 0x3);
+			}
+			else
+			{
 				diff = (ch.lowaddr & 0x3) - iov[2].iov_len;
 				memmove(iov[2].iov_base,
-					iov[3].iov_base + diff,
-					tlp_cpl_bcnt(ch.stcnt));
+						iov[3].iov_base + diff,
+						tlp_cpl_bcnt(ch.stcnt));
 			}
 		}
 
 		if (tlp_length(ch.tlp.falen) ==
-		    ((ch.lowaddr & 0x3) + tlp_cpl_bcnt(ch.stcnt) + 3) >> 2) {
+			((ch.lowaddr & 0x3) + tlp_cpl_bcnt(ch.stcnt) + 3) >> 2)
+		{
 
 			/* last CplD.
 			 * see http://xillybus.com/tutorials/
@@ -378,7 +397,9 @@ static ssize_t libtlp_read_cpld(struct nettlp *nt, void *buf,
 			 */
 			received += tlp_cpl_bcnt(ch.stcnt);
 			break;
-		} else {
+		}
+		else
+		{
 			received += tlp_length(ch.tlp.falen) << 2;
 		}
 	}
@@ -389,7 +410,6 @@ out:
 err_out:
 	return ret;
 }
-
 
 ssize_t dma_read(struct nettlp *nt, uintptr_t addr, void *buf, size_t count)
 {
@@ -410,12 +430,15 @@ ssize_t dma_read(struct nettlp *nt, uintptr_t addr, void *buf, size_t count)
 
 	/* build memory read request  */
 	tlp_set_type(mh.tlp.fmt_type, TLP_TYPE_MRd);
-	if (addr < UINT32_MAX) {
+	if (addr < UINT32_MAX)
+	{
 		tlp_set_fmt(mh.tlp.fmt_type, TLP_FMT_3DW, TLP_FMT_WO_DATA);
 		dst_addr32 = htobe32(addr & 0xFFFFFFFC);
 		iov[2].iov_base = &dst_addr32;
 		iov[2].iov_len = sizeof(dst_addr32);
-	} else {
+	}
+	else
+	{
 		tlp_set_fmt(mh.tlp.fmt_type, TLP_FMT_4DW, TLP_FMT_WO_DATA);
 		dst_addr64 = htobe64(addr & 0xFFFFFFFFFFFFFFFC);
 		iov[2].iov_base = &dst_addr64;
@@ -426,7 +449,6 @@ ssize_t dma_read(struct nettlp *nt, uintptr_t addr, void *buf, size_t count)
 	mh.lstdw = tlp_calculate_lstdw(addr, count);
 	mh.fstdw = tlp_calculate_fstdw(addr, count);
 	tlp_set_length(mh.tlp.falen, tlp_calculate_length(addr, count));
-	
 
 	ret = writev(nt->sockfd, iov, 3);
 	if (ret < 0)
@@ -438,7 +460,7 @@ ssize_t dma_read(struct nettlp *nt, uintptr_t addr, void *buf, size_t count)
 ssize_t dma_write(struct nettlp *nt, uintptr_t addr, void *buf, size_t count)
 {
 	int ret, n;
-	char pad[4] = { 0, 0, 0, 0 };
+	char pad[4] = {0, 0, 0, 0};
 	struct iovec iov[6];
 	struct nettlp_hdr nh;
 	struct tlp_mr_hdr mh;
@@ -453,21 +475,23 @@ ssize_t dma_write(struct nettlp *nt, uintptr_t addr, void *buf, size_t count)
 	iov[1].iov_base = &mh;
 	iov[1].iov_len = sizeof(mh);
 	iov[3].iov_base = pad;
-	iov[3].iov_len = 0;	/* if needed, increment for padding */
+	iov[3].iov_len = 0; /* if needed, increment for padding */
 	iov[4].iov_base = buf;
 	iov[4].iov_len = count;
 	iov[5].iov_base = pad;
-	iov[5].iov_len = 0;	/* if needed, increment for padding */
-
+	iov[5].iov_len = 0; /* if needed, increment for padding */
 
 	/* build memory write request */
 	tlp_set_type(mh.tlp.fmt_type, TLP_TYPE_MWr);
-	if (addr < UINT32_MAX) {
+	if (addr < UINT32_MAX)
+	{
 		tlp_set_fmt(mh.tlp.fmt_type, TLP_FMT_3DW, TLP_FMT_W_DATA);
 		dst_addr32 = htobe32(addr & 0xFFFFFFFC);
 		iov[2].iov_base = &dst_addr32;
 		iov[2].iov_len = sizeof(dst_addr32);
-	} else {
+	}
+	else
+	{
 		tlp_set_fmt(mh.tlp.fmt_type, TLP_FMT_4DW, TLP_FMT_W_DATA);
 		dst_addr64 = htobe64(addr & 0xFFFFFFFFFFFFFFFC);
 		iov[2].iov_base = &dst_addr64;
@@ -484,42 +508,46 @@ ssize_t dma_write(struct nettlp *nt, uintptr_t addr, void *buf, size_t count)
 	 * 1st DW BE is used and not 0xF, move the buffer, if 1st DW
 	 * is xx10, x100, or 1000. It needs padding.
 	 */
-	if (mh.fstdw && mh.fstdw != 0xF) {
-		for (n = 0; n < 3; n++) {
-			if ((mh.fstdw & (0x1 << n)) == 0) {
+	if (mh.fstdw && mh.fstdw != 0xF)
+	{
+		for (n = 0; n < 3; n++)
+		{
+			if ((mh.fstdw & (0x1 << n)) == 0)
+			{
 				/* this byte is not used. padding! */
 				iov[3].iov_len++;
 			}
 		}
 	}
 
-	if (mh.lstdw && mh.lstdw != 0xF) {
-		for (n = 0; n < 3; n++) {
-			if ((mh.lstdw & (0x8 >> n)) == 0) {
+	if (mh.lstdw && mh.lstdw != 0xF)
+	{
+		for (n = 0; n < 3; n++)
+		{
+			if ((mh.lstdw & (0x8 >> n)) == 0)
+			{
 				/* this byte is not used, padding! */
 				iov[5].iov_len++;
 			}
 		}
 	}
 
-
 	ret = writev(nt->sockfd, iov, 6);
 	if (ret < 0)
 		return ret;
 
-	if (ret < (iov[0].iov_len + iov[1].iov_len + iov[2].iov_len)) {
+	if (ret < (iov[0].iov_len + iov[1].iov_len + iov[2].iov_len))
+	{
 		/* failed to write the whole packet */
 		return -2;
 	}
 
-	return ret - (iov[0].iov_len + iov[1].iov_len + iov[2].iov_len
-		      + iov[3].iov_len + iov[5].iov_len);
+	return ret - (iov[0].iov_len + iov[1].iov_len + iov[2].iov_len + iov[3].iov_len + iov[5].iov_len);
 }
-
 
 ssize_t
 dma_read_aligned(struct nettlp *nt, uintptr_t addr, void *buf,
-		 size_t count, size_t mrrs)
+				 size_t count, size_t mrrs)
 {
 	uintptr_t dma_addr;
 	size_t len, done;
@@ -529,7 +557,8 @@ dma_read_aligned(struct nettlp *nt, uintptr_t addr, void *buf,
 	dma_addr = addr;
 	dma_len = count;
 
-	do {
+	do
+	{
 		len = dma_len < mrrs ? dma_len : mrrs;
 		ret = dma_read(nt, dma_addr, buf + done, len);
 		if (ret < 0)
@@ -547,7 +576,7 @@ dma_read_aligned(struct nettlp *nt, uintptr_t addr, void *buf,
 
 ssize_t
 dma_write_aligned(struct nettlp *nt, uintptr_t addr, void *buf,
-		  size_t count, size_t mps)
+				  size_t count, size_t mps)
 {
 	uintptr_t dma_addr;
 	size_t len, done;
@@ -557,7 +586,8 @@ dma_write_aligned(struct nettlp *nt, uintptr_t addr, void *buf,
 	dma_addr = addr;
 	dma_len = count;
 
-	do {
+	do
+	{
 		len = dma_len < mps ? dma_len : mps;
 		ret = dma_write(nt, dma_addr, buf + done, len);
 		if (ret < 0)
@@ -580,7 +610,7 @@ dma_write_aligned(struct nettlp *nt, uintptr_t addr, void *buf,
 static int stop_flag = 0;
 
 int nettlp_run_cb(struct nettlp **nt, int nnts,
-		  struct nettlp_cb *cb, void *arg)
+				  struct nettlp_cb *cb, void *arg)
 {
 	int ret = 0, n;
 	ssize_t received;
@@ -591,17 +621,20 @@ int nettlp_run_cb(struct nettlp **nt, int nnts,
 	struct tlp_mr_hdr *mh;
 	struct tlp_cpl_hdr *ch;
 
-	if (nnts > NETTLP_CB_MAX_NTS) {
+	if (nnts > NETTLP_CB_MAX_NTS)
+	{
 		errno = -EINVAL;
 		return -1;
 	}
 
-	for (n = 0; n < nnts; n++) {
+	for (n = 0; n < nnts; n++)
+	{
 		x[n].fd = nt[n]->sockfd;
 		x[n].events = POLLIN;
 	}
 
-	while (1) {
+	while (1)
+	{
 
 		if (stop_flag)
 			break;
@@ -611,9 +644,10 @@ int nettlp_run_cb(struct nettlp **nt, int nnts,
 			break;
 
 		if (ret == 0)
-			continue;	/* timeout */
+			continue; /* timeout */
 
-		for (n = 0; n < nnts; n++) {
+		for (n = 0; n < nnts; n++)
+		{
 
 			if (!(x[n].revents & POLLIN))
 				continue;
@@ -627,23 +661,28 @@ int nettlp_run_cb(struct nettlp **nt, int nnts,
 			mh = (struct tlp_mr_hdr *)th;
 			ch = (struct tlp_cpl_hdr *)th;
 
-			if (tlp_is_mrd(th->fmt_type) && cb->mrd) {
+			if (tlp_is_mrd(th->fmt_type) && cb->mrd)
+			{
 				cb->mrd(nt[n], mh, arg);
-			} else if (tlp_is_mwr(th->fmt_type) && cb->mwr) {
+			}
+			else if (tlp_is_mwr(th->fmt_type) && cb->mwr)
+			{
 
 				cb->mwr(nt[n], mh, tlp_mwr_data(mh),
-					tlp_mr_data_length(mh), arg);
-
-			} else if (tlp_is_cpl(th->fmt_type) &&
-				   tlp_is_wo_data(th->fmt_type) && cb->cpl) {
+						tlp_mr_data_length(mh), arg);
+			}
+			else if (tlp_is_cpl(th->fmt_type) &&
+					 tlp_is_wo_data(th->fmt_type) && cb->cpl)
+			{
 
 				cb->cpl(nt[n], ch, arg);
-
-			} else if (tlp_is_cpl(th->fmt_type) &&
-				   tlp_is_w_data(th->fmt_type) && cb->cpld) {
+			}
+			else if (tlp_is_cpl(th->fmt_type) &&
+					 tlp_is_w_data(th->fmt_type) && cb->cpld)
+			{
 
 				cb->cpld(nt[n], ch, tlp_cpld_data(ch),
-					 tlp_cpld_data_length(ch), arg);
+						 tlp_cpld_data_length(ch), arg);
 			}
 		}
 	}
@@ -655,7 +694,6 @@ void nettlp_stop_cb(void)
 {
 	stop_flag = 1;
 }
-
 
 /*
  * Messaging API for NetTLP driver.
@@ -700,7 +738,8 @@ uintptr_t nettlp_msg_get_bar4_start(struct in_addr addr)
 	x[0].events = POLLIN;
 
 	ret = poll(x, 1, LIBTLP_CPL_TIMEOUT);
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		errno = ETIME;
 		goto err_out;
 	}
@@ -736,7 +775,8 @@ uint16_t nettlp_msg_get_dev_id(struct in_addr addr)
 	x[0].events = POLLIN;
 
 	ret = poll(x, 1, LIBTLP_CPL_TIMEOUT);
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		errno = ETIME;
 		goto err_out;
 	}
@@ -753,9 +793,8 @@ err_out:
 	return 0;
 }
 
-
 int nettlp_msg_get_msix_table(struct in_addr addr, struct nettlp_msix *msix,
-			      int msix_count)
+							  int msix_count)
 {
 	int sock, req, ret = 0;
 	struct pollfd x[1];
@@ -773,7 +812,8 @@ int nettlp_msg_get_msix_table(struct in_addr addr, struct nettlp_msix *msix,
 	x[0].events = POLLIN;
 
 	ret = poll(x, 1, LIBTLP_CPL_TIMEOUT);
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		errno = ETIME;
 		goto err_out;
 	}
@@ -790,21 +830,21 @@ err_out:
 	return -1;
 }
 
-
 /*
  * PCIe Configuration API
  *
  * see https://scrapbox.io/sora/NetTLP_packet
  */
 
-struct nettlp_pcie_cfg_pkt {
+struct nettlp_pcie_cfg_pkt
+{
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 	uint16_t dwaddrh : 2;
 	uint8_t mask : 4;
-	uint8_t cmd: 2;
+	uint8_t cmd : 2;
 #elif __BYTE_ORDER == __BIG_ENDIAN
-	uint8_t cmd: 2;
+	uint8_t cmd : 2;
 	uint8_t mask : 4;
 	uint16_t dwaddrh : 2;
 
@@ -815,17 +855,17 @@ struct nettlp_pcie_cfg_pkt {
 
 } __attribute__((packed));
 
-#define NETTLP_PCIE_CFG_CMD_READ	0x0
-#define NETTLP_PCIE_CFG_CMD_WRITE	0x1
+#define NETTLP_PCIE_CFG_CMD_READ 0x0
+#define NETTLP_PCIE_CFG_CMD_WRITE 0x1
 
-#define NETTLP_PCIE_CFG_TIMEOUT		1000	/* msec */
+#define NETTLP_PCIE_CFG_TIMEOUT 1000 /* msec */
 
 int nettlp_pcie_cfg_init(struct nettlp_pcie_cfg *ntpc)
 {
 	int fd;
 
 	fd = nettlp_create_udp_socket(ntpc->remote_addr, NETTLP_PCIE_CFG_PORT,
-				      ntpc->local_addr, NETTLP_PCIE_CFG_PORT);
+								  ntpc->local_addr, NETTLP_PCIE_CFG_PORT);
 	if (fd < 0)
 		return fd;
 
@@ -834,14 +874,14 @@ int nettlp_pcie_cfg_init(struct nettlp_pcie_cfg *ntpc)
 }
 
 static void pcie_cfg_set_dwaddr(struct nettlp_pcie_cfg_pkt *pkt,
-				uint16_t dwaddr)
+								uint16_t dwaddr)
 {
 	pkt->dwaddrh = ((dwaddr & 0x0300)) >> 8;
 	pkt->dwaddrl = (dwaddr & 0x00FF);
 }
 
 static int pcie_cfg_read_dw(struct nettlp_pcie_cfg *ntpc, uint16_t dwaddr,
-			    uint8_t mask, uint32_t *data)
+							uint8_t mask, uint32_t *data)
 {
 	int ret;
 	struct nettlp_pcie_cfg_pkt pkt;
@@ -863,11 +903,13 @@ static int pcie_cfg_read_dw(struct nettlp_pcie_cfg *ntpc, uint16_t dwaddr,
 	ret = poll(x, 1, NETTLP_PCIE_CFG_TIMEOUT);
 	if (ret < 0)
 		return ret;
-	if (ret == 0) {
+	if (ret == 0)
+	{
 		errno = ETIME;
 		return -1;
 	}
-	if (!(x[0].revents & POLLIN)) {
+	if (!(x[0].revents & POLLIN))
+	{
 		errno = ENODATA;
 		return -1;
 	}
@@ -884,7 +926,7 @@ static int pcie_cfg_read_dw(struct nettlp_pcie_cfg *ntpc, uint16_t dwaddr,
 }
 
 static int pcie_cfg_write_dw(struct nettlp_pcie_cfg *ntpc, uint16_t dwaddr,
-			     uint8_t mask, uint32_t data)
+							 uint8_t mask, uint32_t data)
 {
 	int ret;
 	struct nettlp_pcie_cfg_pkt pkt;
@@ -901,7 +943,7 @@ static int pcie_cfg_write_dw(struct nettlp_pcie_cfg *ntpc, uint16_t dwaddr,
 }
 
 ssize_t nettlp_pcie_cfg_read(struct nettlp_pcie_cfg *ntpc, uint16_t addr,
-			     void *buf, size_t count)
+							 void *buf, size_t count)
 {
 	int ret;
 	uint16_t dwaddr;
@@ -911,8 +953,8 @@ ssize_t nettlp_pcie_cfg_read(struct nettlp_pcie_cfg *ntpc, uint16_t addr,
 
 	int len, read = 0;
 	uint16_t start_dwaddr, end_dwaddr;
-	int fstpad;	/* unnecessary bytes in first DWORD */
-	int lstpad;	/* unnecessary bytes in last DWORD */
+	int fstpad; /* unnecessary bytes in first DWORD */
+	int lstpad; /* unnecessary bytes in last DWORD */
 
 	fstpad = addr & 0x0003;
 	lstpad = 4 - ((addr + count) & 0x0003);
@@ -923,18 +965,22 @@ ssize_t nettlp_pcie_cfg_read(struct nettlp_pcie_cfg *ntpc, uint16_t addr,
 	 * becomes 4, which means no need to read the end dword.
 	 * Thus, decrement end_dwaddr and set lstpad 0.
 	 */
-	if (lstpad == 4) {
+	if (lstpad == 4)
+	{
 		lstpad = 0;
 		end_dwaddr--;
 	}
 
-	for (dwaddr = start_dwaddr; dwaddr <= end_dwaddr; dwaddr++) {
+	for (dwaddr = start_dwaddr; dwaddr <= end_dwaddr; dwaddr++)
+	{
 
 		mask = 0xF;
-		if (dwaddr == start_dwaddr && fstpad) {
+		if (dwaddr == start_dwaddr && fstpad)
+		{
 			mask &= ((0x0F << fstpad) & 0x0F);
 		}
-		if (dwaddr == end_dwaddr && lstpad) {
+		if (dwaddr == end_dwaddr && lstpad)
+		{
 			mask &= ((0x0F >> lstpad) & 0x0F);
 		}
 
@@ -944,11 +990,13 @@ ssize_t nettlp_pcie_cfg_read(struct nettlp_pcie_cfg *ntpc, uint16_t addr,
 
 		len = 4;
 		ptr = (uint8_t *)&data;
-		if (dwaddr == start_dwaddr && fstpad) {
+		if (dwaddr == start_dwaddr && fstpad)
+		{
 			len -= fstpad;
 			ptr += fstpad;
 		}
-		if (dwaddr == end_dwaddr && lstpad) {
+		if (dwaddr == end_dwaddr && lstpad)
+		{
 			len -= lstpad;
 		}
 
@@ -961,7 +1009,7 @@ ssize_t nettlp_pcie_cfg_read(struct nettlp_pcie_cfg *ntpc, uint16_t addr,
 }
 
 ssize_t nettlp_pcie_cfg_write(struct nettlp_pcie_cfg *ntpc, uint16_t addr,
-			      void *buf, size_t count)
+							  void *buf, size_t count)
 {
 	int ret;
 	uint16_t dwaddr;
@@ -971,30 +1019,34 @@ ssize_t nettlp_pcie_cfg_write(struct nettlp_pcie_cfg *ntpc, uint16_t addr,
 
 	int len, written = 0;
 	uint16_t start_dwaddr, end_dwaddr;
-	int fstpad;	/* unnecessary bytes in first DWORD */
-	int lstpad;	/* unnecessary bytes in last DWORD */
+	int fstpad; /* unnecessary bytes in first DWORD */
+	int lstpad; /* unnecessary bytes in last DWORD */
 
 	fstpad = addr & 0x0003;
 	lstpad = 4 - ((addr + count) & 0x0003);
 
 	start_dwaddr = addr >> 2;
 	end_dwaddr = (addr + count) >> 2;
-	if (lstpad == 4) {
+	if (lstpad == 4)
+	{
 		lstpad = 0;
 		end_dwaddr--;
 	}
 
-	for (dwaddr = start_dwaddr; dwaddr <= end_dwaddr; dwaddr++) {
+	for (dwaddr = start_dwaddr; dwaddr <= end_dwaddr; dwaddr++)
+	{
 		len = 4;
 		mask = 0xF;
 		data = 0;
 		ptr = (uint8_t *)&data;
-		if (dwaddr == start_dwaddr && fstpad) {
+		if (dwaddr == start_dwaddr && fstpad)
+		{
 			mask &= ((0x0F << fstpad) & 0x0F);
 			len -= fstpad;
 			ptr += fstpad;
 		}
-		if (dwaddr == end_dwaddr && lstpad) {
+		if (dwaddr == end_dwaddr && lstpad)
+		{
 			mask &= ((0x0F >> lstpad) & 0x0F);
 			len -= lstpad;
 		}

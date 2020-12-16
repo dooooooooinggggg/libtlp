@@ -23,8 +23,9 @@ int read_pmem(uintptr_t addr, int method)
         break;
 
     default:
-        printf("not implemented this method\n");
+        printf("Not implemented this method\n");
         break;
     }
+
     return 0;
 }
