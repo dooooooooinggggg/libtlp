@@ -3,6 +3,9 @@
 
 #include <libtlp.h>
 
+#include <adaptor.h>
+#include <devmem.h>
+
 int read_pmem(uintptr_t addr, int method)
 {
     printf("read at 0x%lx\n", addr);

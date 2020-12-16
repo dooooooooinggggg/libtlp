@@ -1,6 +1,6 @@
 CC = gcc
 INCLUDE := -I../include -I../../include
-LDFLAGS := -L../lib -I ../../lib
+LDFLAGS := -L../lib -L../../lib
 LDLIBS  := -ltlp -lpthread
 CFLAGS  := -g -Wall $(INCLUDE)
 
