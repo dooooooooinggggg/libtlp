@@ -9,6 +9,7 @@ dma_write
 # pcie_cfg_write
 
 dump_mem
+mem_read
 
 core
 

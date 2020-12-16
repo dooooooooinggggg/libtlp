@@ -7,6 +7,8 @@
 
 #include <libtlp.h>
 
+#include "localconfig.h"
+
 #include "util.h"
 
 void usage(void)

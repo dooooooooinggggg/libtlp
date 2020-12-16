@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <tlp.h>
 
+#include "localconfig.h"
 #include "util.h"
 #include "azkaban.h"
 
