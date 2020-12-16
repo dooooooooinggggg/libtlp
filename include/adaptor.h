@@ -1,3 +1,5 @@
+/* adaptor.h */
+
 #ifndef _ADAPTOR_H_
 #define _ADAPTOR_H_
 
