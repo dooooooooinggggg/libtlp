@@ -6,8 +6,6 @@ CFLAGS  := -g -Wall $(INCLUDE)
 
 PROGNAME = dma_read dma_write dump_mem mem_read
 
-
-
 all: $(PROGNAME)
 
 .c.o: util.h

@@ -4,8 +4,8 @@ LDFLAGS	:=
 LDLIBS	:=
 CFLAGS	:= -g -Wall $(INCLUDE)
 
-OBJECTS := libtlp.o adaptor.o devmem.o
-PROGNAME = libtlp.a adaptor.a devmem.a
+OBJECTS := libtlp.o
+PROGNAME = libtlp.a
 
 all: $(PROGNAME)
 
@@ -14,14 +14,6 @@ all: $(PROGNAME)
 
 libtlp.a: libtlp.o
 	ar rcs libtlp.a libtlp.o
-
-adaptor.a: adaptor.o
-	ar rcs adaptor.a adaptor.o
-
-devmem.a: devmem.o
-	ar rcs devmem.a devmem.o
-
-
 
 clean:
 	rm -rf *.o
