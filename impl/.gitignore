@@ -1,0 +1,21 @@
+dma_read
+dma_write
+# psmem
+# process-list_upa
+# pgd-walk
+# codedump
+# tlpperf
+# pcie_cfg_read
+# pcie_cfg_write
+
+dump_mem
+mem_read
+
+core
+
+a.out
+core
+phy
+phy.c
+System.map*
+*.dump

@@ -12,9 +12,8 @@ all: $(PROGNAME)
 .c.o:
 	$(CC) $(INCLUDE) -c $<
 
-libtlp.a: $(OBJECTS)
-	ar rcs libtlp.a $(OBJECTS)
-
+libtlp.a: libtlp.o
+	ar rcs libtlp.a libtlp.o
 
 clean:
 	rm -rf *.o
